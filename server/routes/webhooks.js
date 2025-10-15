@@ -10,7 +10,7 @@ const router = express.Router();
  * This webhook is received when aN EOC is created.
  */
 
-router.post('/api/webhooks/eoc-created', async (req, res) => {
+router.post('/eoc-created', async (req, res) => {
   try {
     console.log('📞 Received webhook from EOC:', JSON.stringify(req.body, null, 2));
     
@@ -73,7 +73,7 @@ router.post('/api/webhooks/eoc-created', async (req, res) => {
  * GET /api/webhooks/calls
  * Fetches all calls for the React dashboard
  */
-router.get('/calls', async (req, res) => {
+router.get('/api/webhooks/calls', async (req, res) => {
   try {
     const { 
       startDate, 
@@ -115,7 +115,7 @@ router.get('/calls', async (req, res) => {
  * GET /api/webhooks/stats
  * Get dashboard statistics
  */
-router.get('/stats', async (req, res) => {
+router.get('/api/webhooks/stats', async (req, res) => {
   try {
     const totalCalls = await Call.countDocuments();
     const completedCalls = await Call.countDocuments({ outcome: 'completed' });
@@ -137,7 +137,7 @@ router.get('/stats', async (req, res) => {
  * DELETE /api/webhooks/calls/:id
  * Delete a specific call (for testing)
  */
-router.delete('/calls/:id', async (req, res) => {
+router.delete('/api/webhooks/calls/:id', async (req, res) => {
   try {
     await Call.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Call deleted' });
