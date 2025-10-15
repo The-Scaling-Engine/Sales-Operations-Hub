@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { fetchCalls, fetchSalesReps } from '../lib/mockData'
+import { fetchEOCs } from '../lib/api'
 import PeriodSelector from '../components/dashboard/PeriodSelector'
 import ExecutiveMetricsCard from '../components/dashboard/ExecutiveMetricsCard'
 import CallOutcomeCard from '../components/dashboard/CallOutcomeCard'
 import AnimatedNumber from '../components/dashboard/AnimatedNumber'
+import RecentEOCsTable from '../components/dashboard/RecentEOCsTable'
 import CustomizablePerformanceChart from '../components/charts/CustomizablePerformanceChart'
 import ConversionFunnel from '../components/charts/ConversionFunnel'
 import RevenueChart from '../components/charts/RevenueChart'
@@ -31,6 +33,13 @@ const Dashboard = () => {
   const { data: salesReps = [] } = useQuery({
     queryKey: ['salesReps'],
     queryFn: fetchSalesReps,
+  })
+
+  // Fetch recent EOCs
+  const { data: eocs = [], isLoading: eocsLoading } = useQuery({
+    queryKey: ['eocs'],
+    queryFn: () => fetchEOCs(10),
+    refetchInterval: 30000, // Refetch every 30 seconds
   })
 
   // Date filtering
@@ -453,6 +462,21 @@ const Dashboard = () => {
         </motion.div>
         
       </div>
+
+      {/* Recent EOCs Section */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex items-center gap-4 mb-4"
+      >
+        <div className="h-1 w-12 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full"></div>
+        <h2 className="text-3xl font-black text-transparent bg-gradient-to-r from-white to-teal-200 bg-clip-text">
+          Recent End-of-Call Reports
+        </h2>
+        <div className="h-1 flex-1 bg-gradient-to-r from-cyan-500/50 to-transparent rounded-full"></div>
+      </motion.div>
+      <RecentEOCsTable eocs={eocs} />
 
       {/* Performance Trends Chart */}
       <CustomizablePerformanceChart 

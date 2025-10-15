@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 });
 
 // Connect to MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://owiniose_db_user:fKDjenGglzU7DPsp@testcluster.qy1sjn7.mongodb.net/';
+const MONGODB_URI = process.env.MONGODB_URI || 'test-db';
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');
@@ -55,8 +55,9 @@ app.get('/', (req, res) => {
     message: 'Sales Operations Hub API',
     version: '1.0.0',
     endpoints: {
-      webhook: 'POST /api/webhooks/ghl-call',
+      eocWebhook: 'POST /api/webhooks/eoc-created',
       calls: 'GET /api/webhooks/calls',
+      eocs: 'GET /api/webhooks/eocs',
       stats: 'GET /api/webhooks/stats',
       health: 'GET /health'
     }
@@ -84,7 +85,7 @@ app.listen(PORT, () => {
   console.log(`📡 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 API available at: http://localhost:${PORT}`);
-  console.log(`📥 Webhook endpoint: http://localhost:${PORT}/api/webhooks/ghl-call`);
+  console.log(`📥 EOC Webhook: http://localhost:${PORT}/api/webhooks/eoc-created`);
 });
 
 // Graceful shutdown

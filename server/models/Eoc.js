@@ -16,11 +16,11 @@ const eocSchema = new mongoose.Schema({
     },
     phoneNumber: {
         type: String,
-        required: true
+        required: false
     },
     emailAddress: {
         type: String,
-        required: true
+        required: false
     },
     notes: {
         type: String,
@@ -40,10 +40,6 @@ const eocSchema = new mongoose.Schema({
     },
     callRecording: {
         type: String,
-        required: false
-    },
-    rawWebhookData: {
-        type: mongoose.Schema.Types.Mixed,
         required: false
     }
 }, {

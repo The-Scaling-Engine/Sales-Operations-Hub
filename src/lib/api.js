@@ -69,6 +69,22 @@ function mapOutcomeToStatus(outcome) {
 }
 
 /**
+ * Fetch recent EOCs from the backend
+ * @param {number} limit - Number of EOCs to fetch (default: 10)
+ * @returns {Promise<Array>} Array of EOC objects
+ */
+export const fetchEOCs = async (limit = 10) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/webhooks/eocs?limit=${limit}`);
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching EOCs:', error);
+    throw error;
+  }
+};
+
+/**
  * Fetch dashboard statistics
  */
 export const fetchStats = async () => {
@@ -123,6 +139,7 @@ export const checkBackendHealth = async () => {
 
 export default {
   fetchCallsFromAPI,
+  fetchEOCs,
   fetchStats,
   testWebhook,
   checkBackendHealth

@@ -13,58 +13,66 @@ const router = express.Router();
 router.post('/eoc-created', async (req, res) => {
   try {
     console.log('📞 Received webhook from EOC:', JSON.stringify(req.body, null, 2));
-    
+
     // Extract and map data from EOC webhook
     // Note: Adjust these field names based on actual EOC webhook structure
     const customData = req.body.customData || {};
 
-const eocData = {
-  // Store complete webhook for debugging
-  rawWebhookData: req.body,
-  dateOfCall: customData.dateOfCall,
-  calendar: customData.calendar,
-  fullName: customData.fullName,
-  phoneNumber: customData.phoneNumber,
-  emailAddress: customData.emailAddress,
-  notes: customData.notes,
-  closer: customData.closer,
-  callOutcome: customData.callOutcome,
-  objections: customData.objections,
-  callRecording: customData.callRecording,
-};
-    
+    const eocData = {
+      // Store complete webhook for debugging
+      
+      dateOfCall: customData.dateOfCall,
+      calendar: customData.calendar,
+      fullName: customData.fullName,
+      phoneNumber: customData.phoneNumber,
+      emailAddress: customData.emailAddress,
+      notes: customData.notes,
+      closer: customData.closer,
+      callOutcome: customData.callOutcome,
+      objections: customData.objections,
+      callRecording: customData.callRecording,
+    };
+
     // Check if call already exists (prevent duplicates)
-    const existingCall = await Eoc.findOne({ 
-      dateOfCall: eocData.dateOfCall, 
-      calendar: eocData.calendar, 
-      fullName: eocData.fullName, 
-      phoneNumber: eocData.phoneNumber, 
-      emailAddress: eocData.emailAddress, 
-      callOutcome: eocData.callOutcome });
+    const existingCall = await Eoc.findOne({
+      dateOfCall: eocData.dateOfCall,
+      calendar: eocData.calendar,
+      fullName: eocData.fullName,
+      phoneNumber: eocData.phoneNumber,
+      emailAddress: eocData.emailAddress,
+      callOutcome: eocData.callOutcome
+    });
     if (existingCall) {
       console.log('⚠️  Call already exists, updating instead');
-      await Eoc.findOneAndUpdate({ dateOfCall: eocData.dateOfCall, calendar: eocData.calendar, fullName: eocData.fullName, phoneNumber: eocData.phoneNumber, emailAddress: eocData.emailAddress, callOutcome: eocData.callOutcome }, eocData);
+      await Eoc.findOneAndUpdate({ 
+        dateOfCall: eocData.dateOfCall, 
+        calendar: eocData.calendar, 
+        fullName: eocData.fullName, 
+        phoneNumber: eocData.phoneNumber, 
+        emailAddress: eocData.emailAddress, 
+        callOutcome: eocData.callOutcome }, 
+        eocData);
     } else {
       // Save new call to MongoDB
       const newCall = new Eoc(eocData);
       await newCall.save();
       console.log('✅ Call saved to database');
     }
-    
+
     // Always send 200 response to GHL
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       message: 'Webhook received and processed',
       dateOfCall: eocData.dateOfCall
     });
-    
+
   } catch (error) {
     console.error('❌ Error processing webhook:', error);
     // Still send 200 to prevent GHL from retrying
-    res.status(200).json({ 
-      success: false, 
+    res.status(200).json({
+      success: false,
       message: 'Webhook received but error occurred',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -75,37 +83,37 @@ const eocData = {
  * GET /api/webhooks/calls
  * Fetches all calls for the React dashboard
  */
-router.get('/api/webhooks/calls', async (req, res) => {
+router.get('/calls', async (req, res) => {
   try {
-    const { 
-      startDate, 
-      endDate, 
-      salesRep, 
+    const {
+      startDate,
+      endDate,
+      salesRep,
       outcome,
-      limit = 1000 
+      limit = 1000
     } = req.query;
-    
+
     // Build query
     let query = {};
-    
+
     if (startDate || endDate) {
       query.callDate = {};
       if (startDate) query.callDate.$gte = new Date(startDate);
       if (endDate) query.callDate.$lte = new Date(endDate);
     }
-    
+
     if (salesRep) {
       query.salesRep = salesRep;
     }
-    
+
     if (outcome) {
       query.outcome = outcome;
     }
-    
+
     const calls = await Call.find(query)
       .sort({ callDate: -1 })
       .limit(parseInt(limit));
-    
+
     res.json(calls);
   } catch (error) {
     console.error('❌ Error fetching calls:', error);
@@ -114,17 +122,36 @@ router.get('/api/webhooks/calls', async (req, res) => {
 });
 
 /**
+ * GET /api/webhooks/eocs
+ * Fetches recent EOCs for the React dashboard
+ */
+router.get('/eocs', async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const eocs = await Eoc.find()
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit));
+
+    res.json(eocs);
+  } catch (error) {
+    console.error('❌ Error fetching EOCs:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+/**
  * GET /api/webhooks/stats
  * Get dashboard statistics
  */
-router.get('/api/webhooks/stats', async (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
     const totalCalls = await Call.countDocuments();
     const completedCalls = await Call.countDocuments({ outcome: 'completed' });
     const totalRevenue = await Call.aggregate([
       { $group: { _id: null, total: { $sum: '$revenue' } } }
     ]);
-    
+
     res.json({
       totalCalls,
       completedCalls,
