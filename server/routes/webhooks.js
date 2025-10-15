@@ -1,5 +1,6 @@
 import express from 'express';
 import Call from '../models/Call.js';
+import Eoc from '../models/Eoc.js';
 
 const router = express.Router();
 
