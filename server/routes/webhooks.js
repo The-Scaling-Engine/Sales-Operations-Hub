@@ -9,7 +9,7 @@ const router = express.Router();
  * This webhook is received when aN EOC is created.
  */
 
-router.post('/eoc-created', async (req, res) => {
+router.post('/api/webhooks/eoc-created', async (req, res) => {
   try {
     console.log('📞 Received webhook from EOC:', JSON.stringify(req.body, null, 2));
     
