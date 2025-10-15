@@ -16,21 +16,22 @@ router.post('/eoc-created', async (req, res) => {
     
     // Extract and map data from EOC webhook
     // Note: Adjust these field names based on actual EOC webhook structure
-    const eocData = {
-      // Store complete webhook for debugging
-      
-      dateOfCall: req.body.dateOfCall,
-      calendar: req.body.calendar,
-      fullName: req.body.fullName,
-      phoneNumber: req.body.phoneNumber,
-      emailAddress: req.body.emailAddress,
-      notes: req.body.notes,
-      closer: req.body.closer,
-      callOutcome: req.body.callOutcome,
-      objections: req.body.objections,
-      callRecording: req.body.callRecording,
-      rawWebhookData: req.body
-    };
+    const customData = req.body.customData || {};
+
+const eocData = {
+  // Store complete webhook for debugging
+  rawWebhookData: req.body,
+  dateOfCall: customData.dateOfCall,
+  calendar: customData.calendar,
+  fullName: customData.fullName,
+  phoneNumber: customData.phoneNumber,
+  emailAddress: customData.emailAddress,
+  notes: customData.notes,
+  closer: customData.closer,
+  callOutcome: customData.callOutcome,
+  objections: customData.objections,
+  callRecording: customData.callRecording,
+};
     
     // Check if call already exists (prevent duplicates)
     const existingCall = await Eoc.findOne({ 

@@ -4,7 +4,7 @@ const eocSchema = new mongoose.Schema({
     dateOfCall: {
         type: String,
         required: true,
-        unique: true
+        unique: false
     },
     calendar: {
         type: String,
@@ -23,28 +23,28 @@ const eocSchema = new mongoose.Schema({
         required: true
     },
     notes: {
-        type: [String],
-        required: true
+        type: String,
+        required: false
     },
     closer: {
         type: String,
-        required: true
+        required: false
     },
     callOutcome: {
         type: String,
-        required: true
+        required: false
     },
     objections: {
-        type: [String],
-        required: true
+        type: String,
+            required: false
     },
     callRecording: {
         type: String,
-        required: true
+        required: false
     },
     rawWebhookData: {
         type: mongoose.Schema.Types.Mixed,
-        required: true
+        required: false
     }
 }, {
     timestamps: true
