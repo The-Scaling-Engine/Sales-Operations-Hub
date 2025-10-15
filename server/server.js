@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 });
 
 // Connect to MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/sales-operations';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://owiniose_db_user:fKDjenGglzU7DPsp@testcluster.qy1sjn7.mongodb.net/';
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');

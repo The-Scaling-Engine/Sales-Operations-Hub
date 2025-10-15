@@ -5,37 +5,45 @@ const router = express.Router();
 
 /**
  * POST /api/webhooks/ghl-call
- * Receives webhook data from GoHighLevel
+ * Receives webhook data from EOC API
+ * This webhook is received when aN EOC is created.
  */
-router.post('/ghl-call', async (req, res) => {
+
+router.post('/eoc-created', async (req, res) => {
   try {
-    console.log('📞 Received webhook from GHL:', JSON.stringify(req.body, null, 2));
+    console.log('📞 Received webhook from EOC:', JSON.stringify(req.body, null, 2));
     
-    // Extract and map data from GHL webhook
-    // Note: Adjust these field names based on actual GHL webhook structure
-    const callData = {
-      callId: req.body.id || req.body.call_id || `call_${Date.now()}`,
-      salesRep: req.body.user_name || req.body.agent_name || 'Unknown',
-      salesRepId: req.body.user_id || req.body.agent_id,
-      customerName: req.body.contact_name || req.body.customer_name,
-      customerPhone: req.body.contact_phone || req.body.phone,
-      outcome: req.body.call_status || req.body.outcome || 'completed',
-      revenue: parseFloat(req.body.deal_value || req.body.revenue || 0),
-      callDate: req.body.call_date ? new Date(req.body.call_date) : new Date(),
-      duration: parseInt(req.body.duration || req.body.call_duration || 0),
-      notes: req.body.notes || req.body.description,
-      tags: req.body.tags || [],
-      rawWebhookData: req.body // Store complete webhook for debugging
+    // Extract and map data from EOC webhook
+    // Note: Adjust these field names based on actual EOC webhook structure
+    const eocData = {
+      // Store complete webhook for debugging
+      rawWebhookData: req.body,
+      dateOfCall: req.body.dateOfCall,
+      calendar: req.body.calendar,
+      fullName: req.body.fullName,
+      phoneNumber: req.body.phoneNumber,
+      emailAddress: req.body.emailAddress,
+      notes: req.body.notes,
+      closer: req.body.closer,
+      callOutcome: req.body.callOutcome,
+      objections: req.body.objections,
+      callRecording: req.body.callRecording,
     };
     
     // Check if call already exists (prevent duplicates)
-    const existingCall = await Call.findOne({ callId: callData.callId });
+    const existingCall = await Eoc.findOne({ 
+      dateOfCall: eocData.dateOfCall, 
+      calendar: eocData.calendar, 
+      fullName: eocData.fullName, 
+      phoneNumber: eocData.phoneNumber, 
+      emailAddress: eocData.emailAddress, 
+      callOutcome: eocData.callOutcome });
     if (existingCall) {
       console.log('⚠️  Call already exists, updating instead');
-      await Call.findOneAndUpdate({ callId: callData.callId }, callData);
+      await Eoc.findOneAndUpdate({ dateOfCall: eocData.dateOfCall, calendar: eocData.calendar, fullName: eocData.fullName, phoneNumber: eocData.phoneNumber, emailAddress: eocData.emailAddress, callOutcome: eocData.callOutcome }, eocData);
     } else {
       // Save new call to MongoDB
-      const newCall = new Call(callData);
+      const newCall = new Eoc(eocData);
       await newCall.save();
       console.log('✅ Call saved to database');
     }
@@ -44,7 +52,7 @@ router.post('/ghl-call', async (req, res) => {
     res.status(200).json({ 
       success: true, 
       message: 'Webhook received and processed',
-      callId: callData.callId
+      dateOfCall: eocData.dateOfCall
     });
     
   } catch (error) {
@@ -57,6 +65,8 @@ router.post('/ghl-call', async (req, res) => {
     });
   }
 });
+
+//
 
 /**
  * GET /api/webhooks/calls
