@@ -18,7 +18,7 @@ router.post('/eoc-created', async (req, res) => {
     // Note: Adjust these field names based on actual EOC webhook structure
     const eocData = {
       // Store complete webhook for debugging
-      rawWebhookData: req.body,
+      
       dateOfCall: req.body.dateOfCall,
       calendar: req.body.calendar,
       fullName: req.body.fullName,
@@ -29,6 +29,7 @@ router.post('/eoc-created', async (req, res) => {
       callOutcome: req.body.callOutcome,
       objections: req.body.objections,
       callRecording: req.body.callRecording,
+      rawWebhookData: req.body
     };
     
     // Check if call already exists (prevent duplicates)
