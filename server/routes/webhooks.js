@@ -86,44 +86,49 @@ router.post('/booked-call-created', async (req, res) => {
   try {
     console.log('📅 Received Booked Call webhook:', JSON.stringify(req.body, null, 2));
 
-    // Extract and map data from webhook (simplified structure)
+    // Extract and map data from webhook (actual structure with camelCase)
     const {
-      'Full Name': fullName,
-      'Email': email,
-      'Phone': phone,
-      'Contact Source': contactSource,
+      full_name,
+      first_name,
+      last_name,
+      email,
+      phone,
+      contact_source,
       user,
       calendar
     } = req.body;
+
+    // Use full_name if available, otherwise construct from first_name and last_name
+    const fullName = full_name || `${first_name || ''} ${last_name || ''}`.trim();
 
     const bookedCallData = {
       // Contact information
       fullName,
       email,
       phone,
-      contactSource,
+      contactSource: contact_source,
       
       // User data (who's handling the appointment)
       user: user ? {
-        userFirstName: user['User First Name'],
-        userLastName: user['User Last Name'],
-        userEmail: user['User Email']
+        userFirstName: user.firstName,
+        userLastName: user.lastName,
+        userEmail: user.email
       } : undefined,
       
       // Calendar/Appointment data
       calendar: calendar ? {
-        calendarTitle: calendar['Calendar Title'],
-        calendarSelectedTimezone: calendar['Calendar Selected Timezone'],
-        calendarStartTime: calendar['Calendar Start Time'],
-        calendarEndTime: calendar['Calendar End Time'],
-        calendarStatus: calendar['Calendar Status'],
-        calendarAppointmentStatus: calendar['Calendar Appoinment Status'],
-        calendarAddress: calendar['Calendar Address'],
-        calendarDateCreated: calendar['Calendar Date Created'],
-        calendarCreatedBy: calendar['Calendar Created By'],
-        calendarCreatedByUserId: calendar['Calendar Created By User Id'],
-        calendarId: calendar['Calendar ID'],
-        calendarCalendarName: calendar['Calendar Calendar Name']
+        calendarTitle: calendar.title,
+        calendarSelectedTimezone: calendar.selectedTimezone,
+        calendarStartTime: calendar.startTime,
+        calendarEndTime: calendar.endTime,
+        calendarStatus: calendar.status,
+        calendarAppointmentStatus: calendar.appoinmentStatus,
+        calendarAddress: calendar.address,
+        calendarDateCreated: calendar.date_created,
+        calendarCreatedBy: calendar.created_by,
+        calendarCreatedByUserId: calendar.created_by_user_id,
+        calendarId: calendar.id,
+        calendarCalendarName: calendar.calendarName
       } : undefined
     };
 
