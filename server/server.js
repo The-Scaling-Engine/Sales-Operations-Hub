@@ -56,8 +56,10 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       eocWebhook: 'POST /api/webhooks/eoc-created',
+      bookedCallWebhook: 'POST /api/webhooks/booked-call-created',
       calls: 'GET /api/webhooks/calls',
       eocs: 'GET /api/webhooks/eocs',
+      bookedCalls: 'GET /api/webhooks/booked-calls',
       stats: 'GET /api/webhooks/stats',
       health: 'GET /health'
     }
@@ -86,6 +88,7 @@ app.listen(PORT, () => {
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 API available at: http://localhost:${PORT}`);
   console.log(`📥 EOC Webhook: http://localhost:${PORT}/api/webhooks/eoc-created`);
+  console.log(`📅 Booked Call Webhook: http://localhost:${PORT}/api/webhooks/booked-call-created`);
 });
 
 // Graceful shutdown

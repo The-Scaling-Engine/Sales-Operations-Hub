@@ -1,6 +1,7 @@
 import express from 'express';
 import Call from '../models/Call.js';
 import Eoc from '../models/Eoc.js';
+import BookedCall from '../models/BookedCall.js';
 
 const router = express.Router();
 
@@ -77,7 +78,96 @@ router.post('/eoc-created', async (req, res) => {
   }
 });
 
-//
+/**
+ * POST /booked-call-created
+ * Receives webhook data when a call is booked
+ */
+router.post('/booked-call-created', async (req, res) => {
+  try {
+    console.log('📅 Received Booked Call webhook:', JSON.stringify(req.body, null, 2));
+
+    // Extract and map data from webhook (simplified structure)
+    const {
+      'Full Name': fullName,
+      'Email': email,
+      'Phone': phone,
+      'Contact Source': contactSource,
+      user,
+      calendar
+    } = req.body;
+
+    const bookedCallData = {
+      // Contact information
+      fullName,
+      email,
+      phone,
+      contactSource,
+      
+      // User data (who's handling the appointment)
+      user: user ? {
+        userFirstName: user['User First Name'],
+        userLastName: user['User Last Name'],
+        userEmail: user['User Email']
+      } : undefined,
+      
+      // Calendar/Appointment data
+      calendar: calendar ? {
+        calendarTitle: calendar['Calendar Title'],
+        calendarSelectedTimezone: calendar['Calendar Selected Timezone'],
+        calendarStartTime: calendar['Calendar Start Time'],
+        calendarEndTime: calendar['Calendar End Time'],
+        calendarStatus: calendar['Calendar Status'],
+        calendarAppointmentStatus: calendar['Calendar Appoinment Status'],
+        calendarAddress: calendar['Calendar Address'],
+        calendarDateCreated: calendar['Calendar Date Created'],
+        calendarCreatedBy: calendar['Calendar Created By'],
+        calendarCreatedByUserId: calendar['Calendar Created By User Id'],
+        calendarId: calendar['Calendar ID'],
+        calendarCalendarName: calendar['Calendar Calendar Name']
+      } : undefined
+    };
+
+    // Check if booked call already exists (prevent duplicates)
+    // Use combination of email and calendar start time for duplicate detection
+    const existingCall = await BookedCall.findOne({
+      email: bookedCallData.email,
+      'calendar.calendarStartTime': bookedCallData.calendar?.calendarStartTime
+    });
+
+    if (existingCall) {
+      console.log('⚠️  Booked call already exists, updating instead');
+      await BookedCall.findOneAndUpdate(
+        { 
+          email: bookedCallData.email,
+          'calendar.calendarStartTime': bookedCallData.calendar?.calendarStartTime
+        },
+        bookedCallData
+      );
+    } else {
+      // Save new booked call to MongoDB
+      const newBookedCall = new BookedCall(bookedCallData);
+      await newBookedCall.save();
+      console.log('✅ Booked call saved to database');
+    }
+
+    // Always send 200 response
+    res.status(200).json({
+      success: true,
+      message: 'Booked call webhook received and processed',
+      calendarId: bookedCallData.calendar?.calendarId,
+      appointmentTime: bookedCallData.calendar?.calendarStartTime
+    });
+
+  } catch (error) {
+    console.error('❌ Error processing booked call webhook:', error);
+    // Still send 200 to prevent retrying
+    res.status(200).json({
+      success: false,
+      message: 'Webhook received but error occurred',
+      error: error.message
+    });
+  }
+});
 
 /**
  * GET /api/webhooks/calls
@@ -136,6 +226,25 @@ router.get('/eocs', async (req, res) => {
     res.json(eocs);
   } catch (error) {
     console.error('❌ Error fetching EOCs:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * GET /booked-calls
+ * Fetches recent booked calls for the React dashboard
+ */
+router.get('/booked-calls', async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const bookedCalls = await BookedCall.find()
+      .sort({ 'calendar.calendarStartTime': -1 })
+      .limit(parseInt(limit));
+
+    res.json(bookedCalls);
+  } catch (error) {
+    console.error('❌ Error fetching booked calls:', error);
     res.status(500).json({ message: error.message });
   }
 });
