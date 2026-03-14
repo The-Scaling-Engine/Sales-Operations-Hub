@@ -1,0 +1,10 @@
+name: PR Notification
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  notify:
+    uses: The-Scaling-Engine/.github/.github/workflows/pr-slack.yml@main
+    secrets: inherit
